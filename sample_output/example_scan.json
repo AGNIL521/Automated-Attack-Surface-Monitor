@@ -1,0 +1,8 @@
+{
+  "subdomains": ["app.example.com", "mail.example.com"],
+  "open_ports": {"app.example.com": [80, 443]},
+  "services": {"app.example.com": ["nginx 1.18.0", "OpenSSH 7.6"]},
+  "vulnerabilities": [
+    {"host": "app.example.com", "service": "nginx 1.18.0", "cves": ["CVE-2021-23017"]}
+  ]
+}

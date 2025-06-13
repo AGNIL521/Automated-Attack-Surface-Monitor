@@ -1,0 +1,190 @@
+{
+  "targets": {
+    "subdomains": [
+      "user@example.com",
+      "*.example.com",
+      "www.example.com",
+      "m.example.com",
+      "products.example.com",
+      "support.example.com",
+      "m.testexample.com",
+      "subjectname@example.com",
+      "dev.example.com",
+      "example.com",
+      "AS207960 Test Intermediate - example.com"
+    ],
+    "ip_ranges": [],
+    "endpoints": []
+  },
+  "services": [
+    {
+      "host": "user@example.com",
+      "ports": [],
+      "services": []
+    },
+    {
+      "host": "*.example.com",
+      "ports": [],
+      "services": []
+    },
+    {
+      "host": "www.example.com",
+      "ports": [
+        80,
+        443
+      ],
+      "services": [
+        {
+          "port": 80,
+          "banner": {
+            "status_code": 200,
+            "server": "",
+            "powered_by": "",
+            "headers": {
+              "Accept-Ranges": "bytes",
+              "Content-Type": "text/html",
+              "ETag": "\"84238dfc8092e5d9c0dac8ef93371a07:1736799080.121134\"",
+              "Last-Modified": "Mon, 13 Jan 2025 20:11:20 GMT",
+              "Vary": "Accept-Encoding",
+              "Content-Encoding": "gzip",
+              "Content-Length": "648",
+              "Cache-Control": "max-age=1852",
+              "Date": "Fri, 13 Jun 2025 01:23:31 GMT",
+              "Connection": "keep-alive"
+            }
+          }
+        },
+        {
+          "port": 443,
+          "banner": {
+            "status_code": 200,
+            "server": "",
+            "powered_by": "",
+            "headers": {
+              "Accept-Ranges": "bytes",
+              "Content-Type": "text/html",
+              "ETag": "\"84238dfc8092e5d9c0dac8ef93371a07:1736799080.121134\"",
+              "Last-Modified": "Mon, 13 Jan 2025 20:11:20 GMT",
+              "Vary": "Accept-Encoding",
+              "Content-Encoding": "gzip",
+              "Content-Length": "648",
+              "Cache-Control": "max-age=1234",
+              "Date": "Fri, 13 Jun 2025 01:23:31 GMT",
+              "Alt-Svc": "h3=\":443\"; ma=93600,h3-29=\":443\"; ma=93600,quic=\":443\"; ma=93600; v=\"43\"",
+              "Connection": "keep-alive"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "host": "m.example.com",
+      "ports": [],
+      "services": []
+    },
+    {
+      "host": "products.example.com",
+      "ports": [],
+      "services": []
+    },
+    {
+      "host": "support.example.com",
+      "ports": [],
+      "services": []
+    },
+    {
+      "host": "m.testexample.com",
+      "ports": [
+        80,
+        443
+      ],
+      "services": [
+        {
+          "port": 80,
+          "banner": {
+            "status_code": 200,
+            "server": "",
+            "powered_by": "",
+            "headers": {
+              "content-type": "text/html",
+              "date": "Fri, 13 Jun 2025 01:24:11 GMT",
+              "content-length": "114"
+            }
+          }
+        },
+        {
+          "port": 443,
+          "banner": {
+            "error": "HTTPSConnectionPool(host='m.testexample.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLError(1, '[SSL: TLSV1_UNRECOGNIZED_NAME] tlsv1 unrecognized name (_ssl.c:1000)')))"
+          }
+        }
+      ]
+    },
+    {
+      "host": "subjectname@example.com",
+      "ports": [],
+      "services": []
+    },
+    {
+      "host": "dev.example.com",
+      "ports": [],
+      "services": []
+    },
+    {
+      "host": "example.com",
+      "ports": [
+        80,
+        443
+      ],
+      "services": [
+        {
+          "port": 80,
+          "banner": {
+            "status_code": 200,
+            "server": "",
+            "powered_by": "",
+            "headers": {
+              "Accept-Ranges": "bytes",
+              "Content-Type": "text/html",
+              "ETag": "\"84238dfc8092e5d9c0dac8ef93371a07:1736799080.121134\"",
+              "Last-Modified": "Mon, 13 Jan 2025 20:11:20 GMT",
+              "Vary": "Accept-Encoding",
+              "Content-Encoding": "gzip",
+              "Cache-Control": "max-age=1544",
+              "Date": "Fri, 13 Jun 2025 01:26:02 GMT",
+              "Content-Length": "648",
+              "Connection": "keep-alive"
+            }
+          }
+        },
+        {
+          "port": 443,
+          "banner": {
+            "status_code": 200,
+            "server": "",
+            "powered_by": "",
+            "headers": {
+              "Accept-Ranges": "bytes",
+              "Content-Type": "text/html",
+              "ETag": "\"84238dfc8092e5d9c0dac8ef93371a07:1736799080.121134\"",
+              "Last-Modified": "Mon, 13 Jan 2025 20:11:20 GMT",
+              "Vary": "Accept-Encoding",
+              "Content-Encoding": "gzip",
+              "Cache-Control": "max-age=3568",
+              "Date": "Fri, 13 Jun 2025 01:26:02 GMT",
+              "Alt-Svc": "h3=\":443\"; ma=93600,h3-29=\":443\"; ma=93600,quic=\":443\"; ma=93600; v=\"43\"",
+              "Content-Length": "648",
+              "Connection": "keep-alive"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "host": "AS207960 Test Intermediate - example.com",
+      "ports": [],
+      "services": []
+    }
+  ],
+  "vulnerabilities": []
+}

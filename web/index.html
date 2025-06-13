@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attack Surface Monitor Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-dot"></span>
+            <span class="sidebar-dot yellow"></span>
+            <span class="sidebar-dot green"></span>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-btn active" title="Dashboard"> <svg viewBox="0 0 24 24"><rect x="3" y="11" width="6" height="10"/><rect x="9" y="3" width="6" height="18"/><rect x="15" y="7" width="6" height="14"/></svg></button>
+<button class="nav-btn" title="Profile"> <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><rect x="4" y="16" width="16" height="5" rx="2"/></svg></button>
+<button class="nav-btn" title="History"> <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke-width="2"/><polyline points="12,6 12,12 16,14" fill="none" stroke-width="2"/></svg></button>
+<button class="nav-btn" title="Settings"> <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4,15a1.65,1.65,0,0,0,.33,1.82l0,0a2,2,0,0,1-2.83,2.83l0,0A1.65,1.65,0,0,0,15,19.4a1.65,1.65,0,0,0-1.82.33l0,0a2,2,0,0,1-2.83-2.83l0,0A1.65,1.65,0,0,0,8.6,15a1.65,1.65,0,0,0-.33-1.82l0,0a2,2,0,0,1,2.83-2.83l0,0A1.65,1.65,0,0,0,15,8.6a1.65,1.65,0,0,0,1.82-.33l0,0a2,2,0,0,1,2.83,2.83l0,0A1.65,1.65,0,0,0,19.4,15Z" fill="none" stroke-width="2"/></svg></button>
+        </nav>
+        <div class="sidebar-footer">
+            <span class="sidebar-label">Dashboard</span>
+        </div>
+    </aside>
+    <div class="main-content">
+        <header class="topbar">
+            <div class="controls">
+                <label for="scan-select">Scan:</label>
+                <select id="scan-select"></select>
+                <button id="reload-btn">Reload</button>
+                <input type="text" id="search-input" placeholder="Search hosts, CVEs..." />
+            </div>
+            <div class="topbar-right">
+                <span class="profile-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="4"/><rect x="6" y="16" width="12" height="5" rx="2"/></svg></span>
+            </div>
+        </header>
+        <main>
+        <section>
+            <h2>Overview</h2>
+            <div class="charts">
+                <canvas id="subdomainChart" width="400" height="200"></canvas>
+                <canvas id="vulnChart" width="400" height="200"></canvas>
+            </div>
+        </section>
+        <section>
+            <h2>Hosts & Services</h2>
+            <table id="hosts-table">
+                <thead>
+                    <tr><th>Host</th><th>Open Ports</th><th>Services</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+        <section>
+            <h2>Vulnerabilities</h2>
+            <table id="vuln-table">
+                <thead>
+                    <tr><th>Host</th><th>Port</th><th>Product</th><th>Version</th><th>CVE</th><th>Severity</th><th>Summary</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+        <section>
+            <h2>Scan Timeline</h2>
+            <ul id="timeline"></ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Automated Attack Surface Monitor</p>
+    </footer>
+    <script src="main.js"></script>
+</body>
+</html>
