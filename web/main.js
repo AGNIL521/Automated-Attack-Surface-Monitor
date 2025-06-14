@@ -3,14 +3,232 @@ const scanDir = '../scans/'; // directory for scan files (optional, fallback to 
 let allScanFiles = [];
 let currentScanData = null;
 
-async function listScanFiles() {
-    // Try to fetch a list of files from scanDir (requires backend support). Fallback to output.json.
-    // For now, just use output.json and example_scan.json
-    return [
-        { name: 'Latest (output.json)', path: '../output.json' },
-        { name: 'Sample (example_scan.json)', path: '../sample_output/example_scan.json' }
-    ];
+// === Accessibility & UX: Keyboard Shortcuts & Help Modal ===
+function openHelpModal() {
+    const modal = document.getElementById('help-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.focus();
+    }
 }
+function closeHelpModal() {
+    const modal = document.getElementById('help-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        document.getElementById('trigger-scan-btn').focus();
+        document.getElementById('trigger-scan-btn').click();
+    }
+    if (e.ctrlKey && e.key.toLowerCase() === 'r') {
+        e.preventDefault();
+        document.getElementById('reload-btn').focus();
+        document.getElementById('reload-btn').click();
+    }
+    if (e.key === '/') {
+        e.preventDefault();
+        document.getElementById('search-input').focus();
+    }
+    if (e.ctrlKey && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        openHelpModal();
+    }
+    if (e.key === 'Escape') {
+        closeHelpModal();
+    }
+});
+document.addEventListener('DOMContentLoaded', () => {
+    // Sidebar navigation logic
+    const sections = ['overview', 'tests', 'scans', 'settings'];
+    sections.forEach(sec => {
+        const btn = document.getElementById('nav-' + sec);
+        if (btn) {
+            btn.addEventListener('click', () => {
+                sections.forEach(hide => {
+                    document.getElementById(hide + '-section').style.display = (hide === sec) ? 'block' : 'none';
+                    document.getElementById('nav-' + hide).classList.toggle('active', hide === sec);
+                });
+            });
+        }
+    });
+    // Help modal open/close
+    const helpBtn = document.getElementById('help-btn');
+    const closeBtn = document.getElementById('close-help-btn');
+    if (helpBtn) helpBtn.addEventListener('click', openHelpModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeHelpModal);
+    // Trap focus in modal
+    const modal = document.getElementById('help-modal');
+    if (modal) {
+        modal.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                closeBtn.focus();
+            }
+        });
+    }
+    // New Scan
+    const triggerBtn = document.getElementById('trigger-scan-btn');
+    if (triggerBtn) {
+        triggerBtn.addEventListener('click', async () => {
+            const domain = prompt('Enter domain to scan:');
+            if (domain) {
+                await triggerScan(domain);
+            }
+        });
+    }
+    // Download JSON
+    const downloadBtn = document.getElementById('download-btn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', async () => {
+            const scanSelect = document.getElementById('scan-select');
+            if (!scanSelect.value) return;
+            const resp = await fetch('/api/scan/' + scanSelect.value, { headers: { 'Authorization': 'Bearer ' + (window.API_TOKEN || 'testtoken') }});
+            if (!resp.ok) return alert('Could not fetch scan results.');
+            const data = await resp.json();
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = scanSelect.value || 'scan.json';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+        });
+    }
+    // Download CSV
+    const downloadCsvBtn = document.getElementById('download-csv-btn');
+    if (downloadCsvBtn) {
+        downloadCsvBtn.addEventListener('click', async () => {
+            const scanSelect = document.getElementById('scan-select');
+            if (!scanSelect.value) return;
+            const resp = await fetch('/api/scan/' + scanSelect.value, { headers: { 'Authorization': 'Bearer ' + (window.API_TOKEN || 'testtoken') }});
+            if (!resp.ok) return alert('Could not fetch scan results.');
+            const data = await resp.json();
+            // Convert scan result to CSV (hosts/services/vulns)
+            let csv = 'Host,Port,Service,Product,Version,CVE,Severity,Summary\n';
+            if (data.vulnerabilities) {
+                for (const host in data.vulnerabilities) {
+                    for (const vuln of data.vulnerabilities[host]) {
+                        csv += [
+                            host,
+                            vuln.port || '',
+                            vuln.service || '',
+                            vuln.product || '',
+                            vuln.version || '',
+                            vuln.cve || '',
+                            vuln.severity || '',
+                            '"' + (vuln.summary || '').replace(/"/g, '""') + '"'
+                        ].join(',') + '\n';
+                    }
+                }
+            }
+            const blob = new Blob([csv], {type: 'text/csv'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = scanSelect.value.replace(/\.json$/, '.csv') || 'scan.csv';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+        });
+    }
+});
+
+// Fetch available scan files from backend
+async function listScanFiles() {
+    const scanSelect = document.getElementById('scan-select');
+    const statusMsg = document.getElementById('scan-status-msg');
+    if (statusMsg) statusMsg.textContent = 'Loading scan list...';
+    if (scanSelect) scanSelect.setAttribute('aria-busy', 'true');
+    try {
+        const resp = await fetch('/api/scans', { headers: { 'Authorization': 'Bearer ' + (window.API_TOKEN || 'testtoken') }});
+        if (!resp.ok) throw new Error('Failed to fetch scan list');
+        const files = await resp.json();
+        if (statusMsg) statusMsg.textContent = files.length === 0 ? 'No scans found.' : '';
+        if (scanSelect) scanSelect.setAttribute('aria-busy', 'false');
+        return files.map(f => ({ name: f, path: '/api/scan/' + f }));
+    } catch (e) {
+        if (statusMsg) statusMsg.textContent = 'Could not load scan history.';
+        if (scanSelect) scanSelect.setAttribute('aria-busy', 'false');
+        return [];
+    }
+}
+
+
+// Fetch scan data from backend by API
+async function loadScanData(path) {
+    try {
+        const resp = await fetch(path, { headers: { 'Authorization': 'Bearer ' + (window.API_TOKEN || 'testtoken') }});
+        if (!resp.ok) throw new Error('Could not load scan data!');
+        return await resp.json();
+    } catch (e) {
+        alert('Failed to load: ' + path);
+        return null;
+    }
+}
+
+// Trigger a new scan from the frontend
+async function triggerScan(domain) {
+    const statusMsg = document.getElementById('scan-status-msg');
+    if (statusMsg) statusMsg.textContent = 'Triggering scan...';
+    try {
+        const resp = await fetch('/api/scan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (window.API_TOKEN || 'testtoken')
+            },
+            body: JSON.stringify({ domain })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Scan failed');
+        if (statusMsg) statusMsg.textContent = 'Scan started. Waiting for results...';
+        if (statusMsg) statusMsg.setAttribute('aria-live', 'polite');
+        return data;
+    } catch (e) {
+        if (statusMsg) statusMsg.textContent = 'Scan failed: ' + e.message;
+        if (statusMsg) statusMsg.setAttribute('aria-live', 'assertive');
+        return null;
+    }
+}
+
+
+// Poll scan status and show progress bar
+async function pollScanStatus(onUpdate, interval = 2000) {
+    let status = 'running';
+    let progress = 0;
+    const progressBar = document.getElementById('scan-progress-bar');
+    const progressInner = document.getElementById('scan-progress-inner');
+    if (progressBar && progressInner) {
+        progressBar.style.display = 'block';
+        progressInner.style.width = '10%';
+    }
+    while (status === 'running') {
+        try {
+            const resp = await fetch('/api/status', { headers: { 'Authorization': 'Bearer ' + (window.API_TOKEN || 'testtoken') }});
+            const data = await resp.json();
+            status = data.status;
+            progress = Math.min(progress + 15, 95); // Fake progress
+            if (progressBar && progressInner) {
+                progressInner.style.width = progress + '%';
+            }
+            onUpdate(status);
+            if (status !== 'running') break;
+        } catch (e) {
+            onUpdate('error');
+            break;
+        }
+        await new Promise(res => setTimeout(res, interval));
+    }
+    if (progressBar && progressInner) {
+        progressInner.style.width = '100%';
+        setTimeout(() => { progressBar.style.display = 'none'; progressInner.style.width = '0'; }, 1200);
+    }
+}
+
 
 async function loadScanData(path) {
     try {
@@ -26,7 +244,14 @@ async function loadScanData(path) {
 function renderHosts(services, search='') {
     const tbody = document.querySelector('#hosts-table tbody');
     tbody.innerHTML = '';
-    services.filter(host => !search || host.host.includes(search)).forEach(host => {
+    const filtered = services.filter(host => !search || host.host.includes(search));
+    if (filtered.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="3" style="text-align:center; color:#ffe066;">No hosts found for this scan.</td>';
+        tbody.appendChild(tr);
+        return;
+    }
+    filtered.forEach(host => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${host.host}</td>
@@ -36,6 +261,7 @@ function renderHosts(services, search='') {
         tbody.appendChild(tr);
     });
 }
+
 
 function getSeverityBadge(summary) {
     // Try to extract severity from summary or CVE (placeholder logic)

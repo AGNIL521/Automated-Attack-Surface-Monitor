@@ -29,3 +29,37 @@ def test_results():
     assert resp.status_code == 200
     data = resp.json()
     assert "targets" in data and "services" in data and "vulnerabilities" in data
+
+def test_unauthorized_access():
+    client = app.test_client()
+    resp = client.get('/api/results')
+    assert resp.status_code == 401
+    resp = client.post('/api/scan', json={'domain': 'example.com'})
+    assert resp.status_code == 401
+
+def test_scan_trigger_and_result(tmp_path, monkeypatch):
+    monkeypatch.setattr('backend.app.SCANS_DIR', str(tmp_path))
+    client = app.test_client()
+    # Trigger scan with no domain
+    resp = client.post('/api/scan', headers=auth_header(), json={})
+    assert resp.status_code == 400
+    # Trigger scan with domain (simulate quick result)
+    def fake_discover_targets(domain): return {'subdomains': ['a.example.com']}
+    def fake_enumerate_services(targets): return {'a.example.com': ['http']}
+    def fake_fingerprint_vulnerabilities(services): return {'a.example.com': []}
+    monkeypatch.setattr('backend.app.discover_targets', fake_discover_targets)
+    monkeypatch.setattr('backend.app.enumerate_services', fake_enumerate_services)
+    monkeypatch.setattr('backend.app.fingerprint_vulnerabilities', fake_fingerprint_vulnerabilities)
+    resp = client.post('/api/scan', headers=auth_header(), json={'domain': 'example.com'})
+    assert resp.status_code == 200
+
+def test_results_no_scans(tmp_path, monkeypatch):
+    monkeypatch.setattr('backend.app.SCANS_DIR', str(tmp_path))
+    client = app.test_client()
+    resp = client.get('/api/results', headers=auth_header())
+    assert resp.status_code == 404
+
+def test_docs_endpoint():
+    client = app.test_client()
+    resp = client.get('/docs/')
+    assert resp.status_code == 200

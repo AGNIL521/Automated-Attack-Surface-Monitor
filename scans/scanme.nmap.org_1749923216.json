@@ -1,0 +1,12 @@
+{
+  "targets": {
+    "subdomains": [],
+    "ips": []
+  },
+  "services": {
+    "hosts": []
+  },
+  "vulnerabilities": {
+    "vulnerabilities": []
+  }
+}
